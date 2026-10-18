@@ -11,6 +11,8 @@
     "test:backend": "tsx scripts/testAuth.ts"
   },
   "dependencies": {
+    "@supabase/server": "^1.9.2",
+    "@supabase/supabase-js": "^2.118.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
