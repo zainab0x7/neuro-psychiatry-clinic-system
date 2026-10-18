@@ -10,6 +10,7 @@ import { ToastContainer } from '../common/ToastContainer';
 
 // Screen components
 import { LoginScreen } from '../screens/LoginScreen';
+import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { PatientListScreen } from '../screens/PatientListScreen';
 import { AddPatientScreen } from '../screens/AddPatientScreen';
@@ -18,14 +19,41 @@ import { NewConsultationScreen } from '../screens/NewConsultationScreen';
 import { AppointmentListScreen } from '../screens/AppointmentListScreen';
 import { BookAppointmentScreen } from '../screens/BookAppointmentScreen';
 import { AppointmentCalendarScreen } from '../screens/AppointmentCalendarScreen';
+import { OnlineConsultationScreen } from '../screens/OnlineConsultationScreen';
+import { TherapySessionScreen } from '../screens/TherapySessionScreen';
+import { BillingScreen } from '../screens/BillingScreen';
 import { PrescriptionScreen } from '../screens/PrescriptionScreen';
 import { FollowUpScreen } from '../screens/FollowUpScreen';
 import { ReportsScreen } from '../screens/ReportsScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
+import { BackupExportScreen } from '../screens/BackupExportScreen';
 import { UserManagementScreen } from '../screens/UserManagementScreen';
+import { AuditLogScreen } from '../screens/AuditLogScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+
+import { NPCSLandingPage } from '../public/NPCSLandingPage';
 
 export const AppShell: React.FC = () => {
   const { isAuthenticated, activeScreen } = useApp();
+
+  // Public Landing Page for NPCS.digital
+  if (activeScreen === 'landing') {
+    return (
+      <main className="min-h-screen bg-slate-950 flex flex-col font-sans">
+        <NPCSLandingPage />
+        <ToastContainer />
+      </main>
+    );
+  }
+
+  // If activeScreen is 'forgot-password', render Forgot Password Screen
+  if (activeScreen === 'forgot-password') {
+    return (
+      <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <ForgotPasswordScreen />
+        <ToastContainer />
+      </main>
+    );
+  }
 
   // If not logged in or activeScreen is 'login', show Screen 01 Login
   if (!isAuthenticated || activeScreen === 'login') {
@@ -56,16 +84,26 @@ export const AppShell: React.FC = () => {
         return <BookAppointmentScreen />;
       case 'appointment-calendar':
         return <AppointmentCalendarScreen />;
+      case 'online-consultation':
+        return <OnlineConsultationScreen />;
+      case 'therapy':
+        return <TherapySessionScreen />;
+      case 'billing':
+        return <BillingScreen />;
       case 'prescriptions':
         return <PrescriptionScreen />;
       case 'follow-ups':
         return <FollowUpScreen />;
       case 'reports':
         return <ReportsScreen />;
-      case 'settings':
-        return <SettingsScreen />;
+      case 'backup':
+        return <BackupExportScreen />;
       case 'user-management':
         return <UserManagementScreen />;
+      case 'audit-log':
+        return <AuditLogScreen />;
+      case 'settings':
+        return <SettingsScreen />;
       default:
         return <DashboardScreen />;
     }

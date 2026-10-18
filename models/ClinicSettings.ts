@@ -21,6 +21,9 @@ export interface IClinicSettings extends Document {
   notifyEmail: boolean;
   notifySMS: boolean;
   autoRemind24h: boolean;
+  operatingHours?: string;
+  consultationFee?: number;
+  sessionDurationMinutes?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +53,9 @@ const ClinicSettingsSchema: Schema = new Schema<IClinicSettings>(
     notifyEmail: { type: Boolean, default: true },
     notifySMS: { type: Boolean, default: true },
     autoRemind24h: { type: Boolean, default: true },
+    operatingHours: { type: String, default: 'Mon - Sat: 09:00 AM - 08:00 PM' },
+    consultationFee: { type: Number, default: 250 },
+    sessionDurationMinutes: { type: Number, default: 45 },
   },
   { timestamps: true }
 );

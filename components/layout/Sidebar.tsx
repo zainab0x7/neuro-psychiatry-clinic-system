@@ -10,11 +10,16 @@ import {
   FileText, 
   Pill, 
   Clock, 
+  HeartHandshake,
+  Receipt,
   BarChart3, 
-  Settings, 
+  Database,
   ShieldCheck, 
+  History,
+  Settings, 
   LogOut, 
   BrainCircuit,
+  Video,
   X
 } from 'lucide-react';
 import { StatusBadge } from '../common/StatusBadge';
@@ -32,6 +37,7 @@ export const Sidebar: React.FC = () => {
     activeScreen, 
     setActiveScreen, 
     currentUser, 
+    activeRole,
     logout, 
     followUps, 
     appointments,
@@ -42,18 +48,28 @@ export const Sidebar: React.FC = () => {
   const dueFollowupsCount = followUps.filter(f => f.status === 'Due' || f.status === 'Overdue').length;
   const todayApptsCount = appointments.filter(a => a.date === '2026-09-08' && a.status !== 'Cancelled').length;
 
-  const navItems: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'patients', label: 'Patients', icon: Users },
-    { id: 'appointments', label: 'Appointments', icon: Calendar, badgeCount: todayApptsCount },
-    { id: 'appointment-calendar', label: 'Calendar View', icon: Calendar },
-    { id: 'consultations', label: 'Consultations', icon: FileText },
-    { id: 'prescriptions', label: 'Prescriptions', icon: Pill },
-    { id: 'follow-ups', label: 'Follow-ups', icon: Clock, badgeCount: dueFollowupsCount },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    ...(currentUser.role === 'ADMIN' || currentUser.role === 'DOCTOR' ? [{ id: 'user-management' as ScreenId, label: 'Users & Roles', icon: ShieldCheck }] : []),
+  const allNavItems: NavItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, rolesAllowed: ['DOCTOR', 'ADMIN', 'RECEPTIONIST', 'THERAPIST'] },
+    { id: 'patients', label: 'Patients', icon: Users, rolesAllowed: ['DOCTOR', 'ADMIN', 'RECEPTIONIST', 'THERAPIST'] },
+    { id: 'appointments', label: 'Appointments', icon: Calendar, badgeCount: todayApptsCount, rolesAllowed: ['DOCTOR', 'ADMIN', 'RECEPTIONIST', 'THERAPIST'] },
+    { id: 'appointment-calendar', label: 'Calendar View', icon: Calendar, rolesAllowed: ['DOCTOR', 'ADMIN', 'RECEPTIONIST', 'THERAPIST'] },
+    { id: 'online-consultation', label: 'Online Consult Link', icon: Video, rolesAllowed: ['DOCTOR', 'ADMIN', 'RECEPTIONIST'] },
+    { id: 'consultations', label: 'Consultations', icon: FileText, rolesAllowed: ['DOCTOR', 'ADMIN'] },
+    { id: 'prescriptions', label: 'Prescriptions', icon: Pill, rolesAllowed: ['DOCTOR', 'ADMIN'] },
+    { id: 'therapy', label: 'Therapy Sessions', icon: HeartHandshake, rolesAllowed: ['DOCTOR', 'ADMIN', 'THERAPIST'] },
+    { id: 'follow-ups', label: 'Follow-ups', icon: Clock, badgeCount: dueFollowupsCount, rolesAllowed: ['DOCTOR', 'ADMIN', 'RECEPTIONIST'] },
+    { id: 'billing', label: 'Billing & Payments', icon: Receipt, rolesAllowed: ['ADMIN', 'RECEPTIONIST', 'DOCTOR'] },
+    { id: 'reports', label: 'Reports', icon: BarChart3, rolesAllowed: ['ADMIN', 'DOCTOR'] },
+    { id: 'backup', label: 'Backup & Export', icon: Database, rolesAllowed: ['ADMIN'] },
+    { id: 'user-management', label: 'Users & Roles', icon: ShieldCheck, rolesAllowed: ['ADMIN'] },
+    { id: 'audit-log', label: 'Audit Log', icon: History, rolesAllowed: ['ADMIN'] },
+    { id: 'settings', label: 'Settings', icon: Settings, rolesAllowed: ['DOCTOR', 'ADMIN', 'RECEPTIONIST', 'THERAPIST'] },
   ];
+
+  // Filter navigation items by active user role
+  const navItems = allNavItems.filter(item => 
+    !item.rolesAllowed || item.rolesAllowed.includes(activeRole)
+  );
 
   return (
     <>

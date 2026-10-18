@@ -33,6 +33,9 @@ export interface IPatient extends Document {
   registeredDate: string;
   lastVisitDate: string;
   nextFollowUpDate: string;
+  isActive: boolean;
+  createdBy?: string;
+  updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,8 +76,19 @@ const PatientSchema: Schema = new Schema<IPatient>(
     registeredDate: { type: String, required: true },
     lastVisitDate: { type: String, default: 'N/A' },
     nextFollowUpDate: { type: String, default: 'N/A' },
+    isActive: { type: Boolean, default: true, index: true },
+    createdBy: { type: String, default: '' },
+    updatedBy: { type: String, default: '' },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: {
+      transform(_doc, ret) {
+        delete (ret as Record<string, unknown>).__v;
+        return ret;
+      },
+    },
+  }
 );
 
 // Search indexes

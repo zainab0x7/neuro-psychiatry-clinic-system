@@ -5,6 +5,11 @@ import Appointment from '@/models/Appointment';
 import Consultation from '@/models/Consultation';
 import Prescription from '@/models/Prescription';
 import FollowUp from '@/models/FollowUp';
+import TherapySession from '@/models/TherapySession';
+import Payment from '@/models/Payment';
+import FeeCategory from '@/models/FeeCategory';
+import AuditLog from '@/models/AuditLog';
+import BackupLog from '@/models/BackupLog';
 import ClinicSettings from '@/models/ClinicSettings';
 import { hashPassword } from '@/lib/auth';
 import { 
@@ -14,6 +19,11 @@ import {
   INITIAL_CONSULTATIONS, 
   INITIAL_PRESCRIPTIONS, 
   INITIAL_FOLLOWUPS, 
+  INITIAL_THERAPY_SESSIONS,
+  INITIAL_PAYMENTS,
+  INITIAL_FEE_CATEGORIES,
+  INITIAL_AUDIT_LOGS,
+  INITIAL_BACKUP_LOGS,
   INITIAL_CLINIC_SETTINGS 
 } from '@/lib/mockData';
 
@@ -28,6 +38,11 @@ export async function runSeed() {
     Consultation.deleteMany({}),
     Prescription.deleteMany({}),
     FollowUp.deleteMany({}),
+    TherapySession.deleteMany({}),
+    Payment.deleteMany({}),
+    FeeCategory.deleteMany({}),
+    AuditLog.deleteMany({}),
+    BackupLog.deleteMany({}),
     ClinicSettings.deleteMany({}),
   ]);
 
@@ -41,7 +56,7 @@ export async function runSeed() {
     email: user.email.toLowerCase(),
     passwordHash: hashedPassword,
     role: user.role,
-    phone: user.role === 'DOCTOR' ? '+1 (555) 800-8262' : user.role === 'RECEPTIONIST' ? '+1 (555) 800-8263' : '+1 (555) 800-8264',
+    phone: user.role === 'DOCTOR' ? '+1 (555) 800-8262' : user.role === 'RECEPTIONIST' ? '+1 (555) 800-8263' : user.role === 'THERAPIST' ? '+1 (555) 800-8265' : '+1 (555) 800-8264',
     avatar: user.avatar,
     title: user.title,
     department: user.department,
@@ -52,7 +67,7 @@ export async function runSeed() {
 
   await User.insertMany(usersToInsert);
 
-  // 2. Seed 10 realistic patients
+  // 2. Seed realistic patients
   const extraPatients = [
     {
       id: 'PX-9409',
@@ -209,7 +224,81 @@ export async function runSeed() {
 
   await FollowUp.insertMany(followUpsToInsert);
 
-  // 7. Seed Clinic Settings
+  // 7. Seed Therapy Sessions
+  const therapySessionsToInsert = INITIAL_THERAPY_SESSIONS.map((ts) => ({
+    sessionId: ts.id,
+    patientId: ts.patientId,
+    patientName: ts.patientName,
+    therapistId: ts.therapistId,
+    therapistName: ts.therapistName,
+    sessionDate: ts.sessionDate,
+    durationMinutes: ts.durationMinutes,
+    sessionType: ts.sessionType,
+    assessment: ts.assessment,
+    counselling: ts.counselling,
+    intervention: ts.intervention,
+    progressNotes: ts.progressNotes,
+    psychometrics: ts.psychometrics,
+    lifestyleInterventions: ts.lifestyleInterventions,
+    followUpPlan: ts.followUpPlan,
+    responsibleClinician: ts.responsibleClinician,
+    status: ts.status,
+  }));
+  await TherapySession.insertMany(therapySessionsToInsert);
+
+  // 8. Seed Fee Categories
+  const feeCategoriesToInsert = INITIAL_FEE_CATEGORIES.map((fc) => ({
+    categoryId: fc.id,
+    name: fc.name,
+    defaultFee: fc.defaultFee,
+    description: fc.description,
+    isActive: fc.isActive,
+  }));
+  await FeeCategory.insertMany(feeCategoriesToInsert);
+
+  // 9. Seed Payments
+  const paymentsToInsert = INITIAL_PAYMENTS.map((py) => ({
+    paymentId: py.id,
+    receiptNumber: py.receiptNumber,
+    patientId: py.patientId,
+    patientName: py.patientName,
+    service: py.service,
+    feeCategory: py.feeCategory,
+    amount: py.amount,
+    paymentMethod: py.paymentMethod,
+    paymentStatus: py.paymentStatus,
+    date: py.date,
+    notes: py.notes || '',
+  }));
+  await Payment.insertMany(paymentsToInsert);
+
+  // 10. Seed Audit Logs
+  const auditLogsToInsert = INITIAL_AUDIT_LOGS.map((log) => ({
+    logId: log.id,
+    timestamp: log.timestamp,
+    userId: log.userId,
+    userName: log.userName,
+    userRole: log.userRole,
+    action: log.action,
+    module: log.module,
+    patientRef: log.patientRef || '',
+    description: log.description,
+  }));
+  await AuditLog.insertMany(auditLogsToInsert);
+
+  // 11. Seed Backup Logs
+  const backupLogsToInsert = INITIAL_BACKUP_LOGS.map((bkp) => ({
+    backupId: bkp.id,
+    timestamp: bkp.timestamp,
+    fileName: bkp.fileName,
+    fileSize: bkp.fileSize,
+    type: bkp.type,
+    status: bkp.status,
+    createdByName: bkp.createdByName,
+  }));
+  await BackupLog.insertMany(backupLogsToInsert);
+
+  // 12. Seed Clinic Settings
   const settingsToInsert = new ClinicSettings({
     clinicName: INITIAL_CLINIC_SETTINGS.clinicName,
     department: INITIAL_CLINIC_SETTINGS.department,
@@ -242,5 +331,8 @@ export async function runSeed() {
     consultations: consultationsToInsert.length,
     prescriptions: prescriptionsToInsert.length,
     followUps: followUpsToInsert.length,
+    therapySessions: therapySessionsToInsert.length,
+    payments: paymentsToInsert.length,
   };
 }
+

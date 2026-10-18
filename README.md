@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Psychiatry EMR & Clinical Practice System
 
-## Getting Started
+A modern, secure, full-stack Electronic Medical Records (EMR) and Practice Management System tailored for Psychiatric, Neuropsychiatric, and Behavioral Health Clinics.
 
-First, run the development server:
+---
+
+## 1. Project Overview
+The Psychiatry EMR System provides end-to-end clinical workflow management, incorporating:
+- **Role-Based Access Control (RBAC)** for Admin, Doctor, Receptionist, and Therapist staff.
+- **Patient Management & Intake** with duplicate CNIC/Phone validation.
+- **Clinical Consultations & Diagnoses** supporting structured Mental Status Exams (MSE) and ICD-10 diagnostic coding.
+- **Psychiatric Prescriptions & Medication Safety** with dosage controls and 1-click prescription reuse.
+- **Appointment Scheduling** with status progression and date filters.
+- **Psychotherapy Tracking** with session notes, progress scoring (GAD-7/PHQ-9), and homework logging.
+- **Billing & Payment Management** with backend-generated immutable receipt numbers (`RCP-2026-XXXX`).
+- **Financial Collection Reporting** with daily and monthly revenue aggregations.
+- **Audit Logging** tracking all database mutations across resources without blocking HTTP request execution.
+- **Clinic Data Backup & Export** allowing structured JSON export and local database snapshots with zero credential leaks.
+
+---
+
+## 2. Requirements
+- **Node.js**: v18.0.0 or higher
+- **Package Manager**: npm v9.0.0 or higher
+- **Database**: MongoDB v6.0 or higher (or MongoDB Atlas cluster)
+- **Operating System**: Windows, macOS, or Linux
+
+---
+
+## 3. Installation
+
+1. **Clone the Repository**:
+   ```bash
+   git clone <repository-url>
+   cd psychiatrist-system
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+---
+
+## 4. Environment Variables
+Copy `.env.example` to `.env.local` for local development:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Required Configuration Key Reference:
+- `MONGODB_URI`: Production connection string for MongoDB instance (e.g., `mongodb+srv://<user>:<password>@cluster.mongodb.net/psychiatrist_emr`).
+- `JWT_SECRET`: 32+ character unique secret key for signing JWT tokens.
+- `SESSION_SECRET`: 32+ character unique secret key for session encryption.
+- `PORT`: Backend Express HTTP port (default: `5000`).
+- `NODE_ENV`: Set to `production` in live environments.
+- `NEXT_PUBLIC_API_URL`: Base REST API URL accessed by frontend (e.g., `https://api.yourclinic.com`).
+- `ALLOWED_ORIGINS`: Comma-separated allowed frontend domains for production CORS.
+- `INITIAL_ADMIN_EMAIL`: Email address for bootstrapping initial production admin account.
+- `INITIAL_ADMIN_PASSWORD`: Secure password for initial production admin account.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 5. Production Startup Commands
+- **Backend Production Server**:
+  ```bash
+  NODE_ENV=production npm run backend
+  ```
+- **Frontend Production Web App**:
+  ```bash
+  npm run build
+  npm run start
+  ```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 6. PRODUCTION DEPLOYMENT CHECKLIST
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Follow this 17-step checklist before making the application publicly accessible:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. [ ] **Create Production MongoDB Database**: Provision an isolated MongoDB Atlas cluster or hardened dedicated database instance.
+2. [ ] **Configure Environment Variables**: Supply all required environment variables in your server hosting control panel.
+3. [ ] **Configure JWT_SECRET**: Supply a unique, high-entropy 32+ character string for `JWT_SECRET`.
+4. [ ] **Configure SESSION_SECRET**: Supply a unique, high-entropy 32+ character string for `SESSION_SECRET`.
+5. [ ] **Configure NEXT_PUBLIC_API_URL**: Set `NEXT_PUBLIC_API_URL` to your production backend domain (e.g., `https://api.yourclinic.com`).
+6. [ ] **Configure ALLOWED_ORIGINS**: Set `ALLOWED_ORIGINS` to include strictly your production frontend domain (e.g., `https://emr.yourclinic.com`).
+7. [ ] **Deploy Backend**: Deploy the Node/Express service and verify clean startup logs.
+8. [ ] **Verify Health Endpoint**: Query `GET /api/health` and verify HTTP 200 OK with `database: connected`.
+9. [ ] **Deploy Frontend**: Build and deploy the Next.js frontend application.
+10. [ ] **Verify Staff Login**: Log in with initial administrator credentials and verify JWT issuance.
+11. [ ] **Verify Database Persistence**: Create a test record, restart backend process, and confirm state persistence.
+12. [ ] **Verify RBAC Enforcements**: Confirm non-admin accounts receive 403 Forbidden on restricted endpoints.
+13. [ ] **Verify HTTPS/TLS Encryption**: Ensure SSL/TLS certificates (HTTPS) are active across all endpoints.
+14. [ ] **Verify Data Backup/Export**: Execute `GET /api/backup/export` and confirm zero password leaks in output.
+15. [ ] **Verify Audit Logging**: Perform an administrative action and confirm audit record creation.
+16. [ ] **Create Real Staff Accounts**: Create production staff accounts for Doctors, Receptionists, and Therapists.
+17. [ ] **DO NOT Run Demo Seed against Production DB**: Confirm `scripts/seed.ts` is NOT executed on the live production database.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 7. HOSTING OPTIONS & ARCHITECTURE
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Option A: Cloud PaaS Architecture (Next.js on Vercel + Express on Render/Railway + MongoDB Atlas)
+
+- **Frontend Hosting**: Vercel (or Netlify)
+  - Environment Variable Required: `NEXT_PUBLIC_API_URL=https://api.yourclinic.com`
+- **Backend Hosting**: Render / Railway / Google Cloud Run
+  - Environment Variables Required:
+    - `MONGODB_URI=mongodb+srv://<dbuser>:<dbpass>@cluster0.mongodb.net/psychiatrist_emr?retryWrites=true&w=majority`
+    - `JWT_SECRET=<32-char-random-string>`
+    - `SESSION_SECRET=<32-char-random-string>`
+    - `PORT=5000`
+    - `NODE_ENV=production`
+    - `ALLOWED_ORIGINS=https://emr.yourclinic.com`
+    - `INITIAL_ADMIN_EMAIL=admin@yourclinic.com`
+    - `INITIAL_ADMIN_PASSWORD=<secure-prod-password>`
+- **Database**: MongoDB Atlas Cluster (Dedicated M10+ with automated IP whitelisting).
+
+---
+
+### Option B: Unified VPS Architecture (Single Linux Server + Nginx Reverse Proxy + MongoDB Atlas)
+
+- **Server Environment**: Ubuntu 24.04 LTS / AWS EC2 / DigitalOcean Droplet
+- **Process Management**: PM2 managing both frontend (`npm run start`) and backend (`npm run backend`) processes.
+- **Reverse Proxy**: Nginx routing `/` to `http://localhost:3000` and `/api/` to `http://localhost:5000`.
+- **Environment File Configuration (`.env.local`)**:
+  ```env
+  MONGODB_URI=mongodb+srv://<dbuser>:<dbpass>@cluster0.mongodb.net/psychiatrist_emr?retryWrites=true&w=majority
+  JWT_SECRET=<32-char-random-string>
+  SESSION_SECRET=<32-char-random-string>
+  PORT=5000
+  NODE_ENV=production
+  NEXT_PUBLIC_API_URL=https://emr.yourclinic.com
+  ALLOWED_ORIGINS=https://emr.yourclinic.com
+  INITIAL_ADMIN_EMAIL=admin@yourclinic.com
+  INITIAL_ADMIN_PASSWORD=<secure-prod-password>
+  ```
+- **SSL/TLS**: Certbot (Let's Encrypt) provisioning automatic HTTPS certificates.
+
+---
+
+## 8. Demo vs. Production Data Disclaimer
+- **Demo Seed Script (`scripts/seed.ts`)**: Designed exclusively for local development and client demonstration. Automatically blocked from executing in production mode (`NODE_ENV=production`) unless `--force-production-seed` is explicitly supplied.
+- **Production Seeding**: In production mode, the backend boots up cleanly without demo records and automatically seeds a single initial administrator account if `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` are configured.

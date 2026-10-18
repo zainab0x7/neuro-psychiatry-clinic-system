@@ -52,11 +52,20 @@ export const PatientListScreen: React.FC = () => {
     async function fetchServerPatients() {
       setIsSearching(true);
       try {
-        const url = `/api/patients?q=${encodeURIComponent(debouncedSearch)}&gender=${genderFilter}&status=${statusFilter}&page=${currentPage}&limit=${itemsPerPage}`;
-        const res = await fetch(url);
+        const BACKEND_API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const token = typeof window !== 'undefined' ? localStorage.getItem('psychiatrist_token') : null;
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const url = `${BACKEND_API}/api/patients?search=${encodeURIComponent(debouncedSearch)}&gender=${genderFilter}&status=${statusFilter}&page=${currentPage}&limit=${itemsPerPage}`;
+        const res = await fetch(url, { headers, credentials: 'include' });
         const json = await res.json();
         if (isMounted && json.success) {
-          setServerPatients(json.data || []);
+          const mapped = (json.data || []).map((p: any) => ({
+            ...p,
+            id: p.patientId || p.id || p._id,
+          }));
+          setServerPatients(mapped);
           if (json.pagination) {
             setServerTotal(json.pagination.total);
           }

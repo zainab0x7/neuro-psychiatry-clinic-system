@@ -23,13 +23,19 @@ export interface IAppointment extends Document {
   patientPhone: string;
   doctorId: string;
   doctorName: string;
+  clinicianId: string;
+  clinicianName: string;
   appointmentDate: string; // YYYY-MM-DD
   appointmentTime: string; // HH:MM AM/PM
   durationMinutes: number;
-  appointmentType: AppointmentType;
+  appointmentType: string;
   notes: string;
   room?: string;
-  status: AppointmentStatus;
+  consultationMode?: string;
+  onlineSessionLink?: string;
+  status: string;
+  createdBy?: string;
+  updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +48,8 @@ const AppointmentSchema: Schema = new Schema<IAppointment>(
     patientPhone: { type: String, default: '' },
     doctorId: { type: String, required: true, index: true },
     doctorName: { type: String, required: true },
+    clinicianId: { type: String, default: '', index: true },
+    clinicianName: { type: String, default: '' },
     appointmentDate: { type: String, required: true, index: true },
     appointmentTime: { type: String, required: true },
     durationMinutes: { type: Number, default: 45 },
@@ -51,18 +59,36 @@ const AppointmentSchema: Schema = new Schema<IAppointment>(
     },
     notes: { type: String, default: '' },
     room: { type: String, default: 'Consultation Suite 1' },
+    consultationMode: { type: String, default: 'In-Person' },
+    onlineSessionLink: { type: String, default: '' },
     status: { 
       type: String, 
-      enum: ['Scheduled', 'Confirmed', 'In Progress', 'Completed', 'Cancelled', 'No Show', 'SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'],
+      enum: ['Scheduled', 'Confirmed', 'In Progress', 'Completed', 'Cancelled', 'No Show', 'SCHEDULED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW'],
       default: 'Scheduled',
       index: true
     },
+    createdBy: { type: String, default: '' },
+    updatedBy: { type: String, default: '' },
   },
   { timestamps: true }
 );
 
+// Pre-save hook to synchronize doctorId/clinicianId and doctorName/clinicianName
+AppointmentSchema.pre('save', function (this: IAppointment) {
+  if (!this.clinicianId && this.doctorId) this.clinicianId = this.doctorId;
+  if (!this.doctorId && this.clinicianId) this.doctorId = this.clinicianId;
+  if (!this.clinicianName && this.doctorName) this.clinicianName = this.doctorName;
+  if (!this.doctorName && this.clinicianName) this.doctorName = this.clinicianName;
+
+  if (!this.onlineSessionLink && (this.consultationMode?.toLowerCase().includes('online') || this.consultationMode?.toLowerCase().includes('tele') || this.appointmentType?.toLowerCase().includes('online'))) {
+    const cleanId = (this.appointmentId || 'apt').toLowerCase();
+    this.onlineSessionLink = `https://meet.vancepsychiatry.com/room/session-${cleanId}`;
+  }
+});
+
 // Compound indexes required by prompt
 AppointmentSchema.index({ doctorId: 1, appointmentDate: 1 });
+AppointmentSchema.index({ clinicianId: 1, appointmentDate: 1 });
 AppointmentSchema.index({ patientId: 1, appointmentDate: 1 });
 AppointmentSchema.index({ appointmentDate: 1, status: 1 });
 

@@ -18,7 +18,26 @@ export const AppointmentCalendarScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<'Day' | 'Week' | 'Month'>('Day');
   const [selectedDate, setSelectedDate] = useState<string>('2026-09-08');
 
-  const todayStr = '2026-09-08';
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const handlePrevDay = () => {
+    const curr = new Date(selectedDate || todayStr);
+    curr.setDate(curr.getDate() - 1);
+    setSelectedDate(curr.toISOString().split('T')[0]);
+  };
+
+  const handleNextDay = () => {
+    const curr = new Date(selectedDate || todayStr);
+    curr.setDate(curr.getDate() + 1);
+    setSelectedDate(curr.toISOString().split('T')[0]);
+  };
+
+  const formattedDateLabel = new Date(selectedDate || todayStr).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   const dateAppointments = appointments.filter(a => a.date === selectedDate);
 
@@ -78,21 +97,23 @@ export const AppointmentCalendarScreen: React.FC = () => {
 
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setSelectedDate('2026-09-07')}
+              onClick={handlePrevDay}
               className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
+              title="Previous Day"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setSelectedDate('2026-09-09')}
+              onClick={handleNextDay}
               className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
+              title="Next Day"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           <span className="text-sm font-bold text-slate-900 ml-2">
-            Tuesday, September 8, 2026
+            {formattedDateLabel}
           </span>
         </div>
 

@@ -8,16 +8,17 @@ import FollowUp from '@/models/FollowUp';
 import { PatientSchema } from '@/lib/validators';
 import { authorizeUser } from '@/lib/permissions';
 
-// GET /api/patients/[id] - Get patient detail with related clinical history
+// GET /api/patients/[patientId] - Get patient detail with related clinical history
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ patientId: string }> }
 ) {
   try {
     const auth = await authorizeUser(['DOCTOR', 'RECEPTIONIST', 'ADMIN']);
     if (!auth.authorized) return auth.response!;
 
-    const { id } = await params;
+    const { patientId } = await params;
+    const id = patientId;
     await dbConnect();
 
     // Query by patientId (PX-XXXX) or _id
@@ -64,16 +65,17 @@ export async function GET(
   }
 }
 
-// PUT /api/patients/[id] - Edit patient record
+// PUT /api/patients/[patientId] - Edit patient record
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ patientId: string }> }
 ) {
   try {
     const auth = await authorizeUser(['DOCTOR', 'RECEPTIONIST', 'ADMIN']);
     if (!auth.authorized) return auth.response!;
 
-    const { id } = await params;
+    const { patientId } = await params;
+    const id = patientId;
     await dbConnect();
     const body = await req.json();
 
@@ -111,16 +113,17 @@ export async function PUT(
   }
 }
 
-// DELETE /api/patients/[id] - Delete patient record
+// DELETE /api/patients/[patientId] - Delete patient record
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ patientId: string }> }
 ) {
   try {
     const auth = await authorizeUser(['DOCTOR', 'ADMIN']);
     if (!auth.authorized) return auth.response!;
 
-    const { id } = await params;
+    const { patientId } = await params;
+    const id = patientId;
     await dbConnect();
 
     const patient = await Patient.findOneAndDelete({

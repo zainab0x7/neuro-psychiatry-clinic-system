@@ -1,0 +1,36 @@
+module.exports = {
+  apps: [
+    {
+      name: 'emr-backend',
+      script: 'node_modules/tsx/dist/cli.mjs',
+      args: 'backend/server.ts',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '1G',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 5000,
+      },
+      error_file: '/var/log/emr/backend-error.log',
+      out_file: '/var/log/emr/backend-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    },
+    {
+      name: 'emr-frontend',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'start -p 3000',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '1G',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3000,
+      },
+      error_file: '/var/log/emr/frontend-error.log',
+      out_file: '/var/log/emr/frontend-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    },
+  ],
+};

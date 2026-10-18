@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { StatusBadge } from '../common/StatusBadge';
-import { UserRole, SystemUser } from '../../types';
+import { UserRole } from '../../types';
 import { ShieldCheck, UserPlus, Check, X, Shield, Lock, Stethoscope, UserCheck } from 'lucide-react';
 
 export const UserManagementScreen: React.FC = () => {
@@ -25,10 +25,10 @@ export const UserManagementScreen: React.FC = () => {
       role,
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       title,
-      department: role === 'DOCTOR' ? 'Clinical Neuropsychiatry' : 'Practice Administration',
+      department: role === 'DOCTOR' ? 'Clinical Neuropsychiatry' : role === 'THERAPIST' ? 'Clinical Psychology' : 'Practice Administration',
       status: 'ACTIVE',
       permissions: {
-        canWriteClinicalNotes: role === 'DOCTOR',
+        canWriteClinicalNotes: role === 'DOCTOR' || role === 'THERAPIST',
         canPrescribe: role === 'DOCTOR',
         canManagePatients: true,
         canManageAppointments: true,
@@ -43,13 +43,15 @@ export const UserManagementScreen: React.FC = () => {
   };
 
   const permissionsMatrix = [
-    { feature: 'Search & View Patient Roster', doctor: true, receptionist: true, admin: true },
-    { feature: 'Register New Patient Records', doctor: true, receptionist: true, admin: true },
-    { feature: 'Book & Reschedule Appointments', doctor: true, receptionist: true, admin: true },
-    { feature: 'Write Clinical Notes & Intakes', doctor: true, receptionist: false, admin: false },
-    { feature: 'Issue Pharmacotherapy Prescriptions', doctor: true, receptionist: false, admin: false },
-    { feature: 'Access Practice Analytics & Reports', doctor: true, receptionist: false, admin: true },
-    { feature: 'Manage Staff Accounts & System Roles', doctor: false, receptionist: false, admin: true },
+    { feature: 'Search & View Patient Roster', doctor: true, therapist: true, receptionist: true, admin: true },
+    { feature: 'Register New Patient Records', doctor: true, therapist: false, receptionist: true, admin: true },
+    { feature: 'Book & Reschedule Appointments', doctor: true, therapist: true, receptionist: true, admin: true },
+    { feature: 'Write Medical Intake & Consult Notes', doctor: true, therapist: false, receptionist: false, admin: false },
+    { feature: 'Conduct Therapy Sessions & Modality Notes', doctor: true, therapist: true, receptionist: false, admin: false },
+    { feature: 'Issue Pharmacotherapy Prescriptions', doctor: true, therapist: false, receptionist: false, admin: false },
+    { feature: 'Access Practice Analytics & Billing', doctor: true, therapist: false, receptionist: false, admin: true },
+    { feature: 'Manage System Backups & Audit Logs', doctor: false, therapist: false, receptionist: false, admin: true },
+    { feature: 'Manage Staff Accounts & System Roles', doctor: false, therapist: false, receptionist: false, admin: true },
   ];
 
   return (
@@ -57,9 +59,9 @@ export const UserManagementScreen: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">User Access & Role Management</h1>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Screen 19: User Access & Role Management</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Configure Role-Based Access Control (RBAC) and staff permissions.
+            Configure Role-Based Access Control (RBAC) across Doctor, Therapist, Receptionist, and Admin tiers.
           </p>
         </div>
 
@@ -130,6 +132,7 @@ export const UserManagementScreen: React.FC = () => {
                     className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold text-slate-700"
                   >
                     <option value="DOCTOR">Doctor</option>
+                    <option value="THERAPIST">Therapist</option>
                     <option value="RECEPTIONIST">Receptionist</option>
                     <option value="ADMIN">Admin</option>
                   </select>
@@ -145,7 +148,7 @@ export const UserManagementScreen: React.FC = () => {
         <div className="border-b border-slate-100 pb-3">
           <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
             <Shield className="w-4 h-4 text-teal-600" />
-            Role Permissions Matrix (RBAC Control)
+            Role Permissions Matrix (4-Tier RBAC Control)
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">Summary of clinical and administrative capabilities per role</p>
         </div>
@@ -155,9 +158,10 @@ export const UserManagementScreen: React.FC = () => {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <th className="py-2.5 px-4">Feature / Action Permission</th>
-                <th className="py-2.5 px-4 text-center">Doctor / Consultant</th>
-                <th className="py-2.5 px-4 text-center">Receptionist / Coordinator</th>
-                <th className="py-2.5 px-4 text-center">Practice Admin</th>
+                <th className="py-2.5 px-4 text-center">Doctor</th>
+                <th className="py-2.5 px-4 text-center">Therapist</th>
+                <th className="py-2.5 px-4 text-center">Receptionist</th>
+                <th className="py-2.5 px-4 text-center">Admin</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -165,25 +169,16 @@ export const UserManagementScreen: React.FC = () => {
                 <tr key={i} className="hover:bg-slate-50">
                   <td className="py-3 px-4 font-semibold text-slate-800">{row.feature}</td>
                   <td className="py-3 px-4 text-center">
-                    {row.doctor ? (
-                      <Check className="w-4 h-4 text-emerald-600 mx-auto" />
-                    ) : (
-                      <X className="w-4 h-4 text-slate-300 mx-auto" />
-                    )}
+                    {row.doctor ? <Check className="w-4 h-4 text-emerald-600 mx-auto" /> : <X className="w-4 h-4 text-slate-300 mx-auto" />}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {row.receptionist ? (
-                      <Check className="w-4 h-4 text-emerald-600 mx-auto" />
-                    ) : (
-                      <X className="w-4 h-4 text-slate-300 mx-auto" />
-                    )}
+                    {row.therapist ? <Check className="w-4 h-4 text-emerald-600 mx-auto" /> : <X className="w-4 h-4 text-slate-300 mx-auto" />}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {row.admin ? (
-                      <Check className="w-4 h-4 text-emerald-600 mx-auto" />
-                    ) : (
-                      <X className="w-4 h-4 text-slate-300 mx-auto" />
-                    )}
+                    {row.receptionist ? <Check className="w-4 h-4 text-emerald-600 mx-auto" /> : <X className="w-4 h-4 text-slate-300 mx-auto" />}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    {row.admin ? <Check className="w-4 h-4 text-emerald-600 mx-auto" /> : <X className="w-4 h-4 text-slate-300 mx-auto" />}
                   </td>
                 </tr>
               ))}
@@ -206,7 +201,7 @@ export const UserManagementScreen: React.FC = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Dr. Rachel Green"
+                  placeholder="e.g. Dr. Emily Watson"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900"
                 />
               </div>
@@ -218,7 +213,7 @@ export const UserManagementScreen: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="rachel@vancepsychiatry.com"
+                  placeholder="emily@vancepsychiatry.com"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900"
                 />
               </div>
@@ -231,7 +226,8 @@ export const UserManagementScreen: React.FC = () => {
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-bold"
                 >
                   <option value="RECEPTIONIST">Receptionist / Coordinator</option>
-                  <option value="DOCTOR">Doctor / Consultant</option>
+                  <option value="THERAPIST">Clinical Therapist</option>
+                  <option value="DOCTOR">Consultant Psychiatrist</option>
                   <option value="ADMIN">Practice Admin</option>
                 </select>
               </div>

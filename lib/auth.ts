@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { UserRole } from '@/models/User';
 
 const SESSION_SECRET = process.env.SESSION_SECRET || 'psychiatrist_system_secure_jwt_session_secret_32chars_min';
@@ -53,12 +53,36 @@ export async function createSessionCookie(payload: Omit<SessionPayload, 'exp'>):
 }
 
 /**
- * Get and verify the current session payload from HTTP-only cookie
+ * Get and verify the current session payload from HTTP-only cookie, Authorization header, or Request object
  */
-export async function getSession(): Promise<SessionPayload | null> {
+export async function getSession(req?: Request): Promise<SessionPayload | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
+    let token: string | undefined | null = null;
+
+    if (req) {
+      const authHeader = req.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7).trim();
+      }
+    }
+
+    if (!token) {
+      try {
+        const cookieStore = await cookies();
+        token = cookieStore.get(COOKIE_NAME)?.value;
+      } catch {}
+    }
+
+    if (!token) {
+      try {
+        const headerStore = await headers();
+        const authHeader = headerStore.get('authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7).trim();
+        }
+      } catch {}
+    }
+
     if (!token) return null;
 
     const { payload } = await jwtVerify(token, SECRET_KEY);

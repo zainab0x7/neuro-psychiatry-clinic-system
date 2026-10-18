@@ -1,4 +1,4 @@
-export type UserRole = 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN';
+export type UserRole = 'DOCTOR' | 'ADMIN' | 'RECEPTIONIST' | 'RECEPTION' | 'THERAPIST';
 
 export interface SystemUser {
   id: string;
@@ -58,6 +58,144 @@ export interface Patient {
   clinicalIntake: ClinicalIntake;
 }
 
+export interface PsychiatricHistoryDetails {
+  presentingHistory: string;
+  previousTreatment: string;
+  previousDiagnoses: string;
+  hospitalizationHistory: string;
+  treatmentResponse: string;
+  relevantHistory: string;
+}
+
+export interface MedicalHistoryDetails {
+  chronicConditions: string;
+  surgeries: string;
+  neurologicalHistory: string;
+  currentPhysicalIllnesses: string;
+}
+
+export interface PersonalHistoryDetails {
+  birthPerinatal: string;
+  developmentalMilestones: string;
+  educationalHistory: string;
+  occupationalHistory: string;
+}
+
+export interface FamilyHistoryDetails {
+  mentalHealthDisorders: string;
+  substanceMisuse: string;
+  completedSuicides: string;
+  familyStructure: string;
+}
+
+export interface SocialHistoryDetails {
+  livingSituation: string;
+  psychosocialStressors: string;
+  substanceUseProfile: {
+    alcohol: string;
+    tobacco: string;
+    illicit: string;
+  };
+  legalHistory: string;
+}
+
+export interface MSEDetails {
+  appearance: string;
+  behavior: string;
+  speech: string;
+  mood: string;
+  affect: string;
+  thoughtContent: string;
+  thoughtProcess: string;
+  perception: string;
+  cognition: string;
+  insight: string;
+  judgment: string;
+}
+
+export interface RiskMatrixDetails {
+  suicideRisk: 'Low' | 'Moderate' | 'High';
+  homicideRisk: 'Low' | 'Moderate' | 'High';
+  selfHarmRisk: 'Low' | 'Moderate' | 'High';
+  vulnerabilityRisk: 'Low' | 'Moderate' | 'High';
+  riskNotes: string;
+}
+
+export interface ClinicalRecord {
+  id: string;
+  patientId: string;
+  psychiatricHistory: PsychiatricHistoryDetails;
+  medicalHistory: MedicalHistoryDetails;
+  personalHistory: PersonalHistoryDetails;
+  familyHistory: FamilyHistoryDetails;
+  socialHistory: SocialHistoryDetails;
+  mentalStatusExam: MSEDetails;
+  riskAssessment: RiskMatrixDetails;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PsychometricAssessmentRecord {
+  id: string;
+  patientId: string;
+  assessmentName: string;
+  score: string;
+  maxScore?: number;
+  severity: string;
+  date: string; // YYYY-MM-DD
+  notes: string;
+  clinicianName: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+}
+
+export interface MedicationRecordItem {
+  id: string;
+  patientId: string;
+  name: string;
+  strength: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  duration: string;
+  status: 'Active' | 'Completed' | 'Discontinued';
+  startDate: string;
+  endDate?: string;
+  prescribingClinician: string;
+  notes?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+}
+
+export interface AllergyRecordItem {
+  id: string;
+  patientId: string;
+  allergen: string;
+  reaction: string;
+  severity: 'Mild' | 'Moderate' | 'Severe';
+  notes?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TimelineEventItem {
+  id: string;
+  patientId: string;
+  date: string;
+  title: string;
+  category: 'Registration' | 'Clinical Record' | 'Assessment' | 'Medication' | 'Consultation' | 'Therapy' | 'Allergy';
+  description: string;
+  author: string;
+  metadata?: Record<string, any>;
+}
+
+
 export type AppointmentStatus = 'Scheduled' | 'Confirmed' | 'In Progress' | 'Completed' | 'Cancelled' | 'No Show';
 export type AppointmentType = 
   | 'Initial Neuropsychiatric Eval'
@@ -80,6 +218,7 @@ export interface Appointment {
   status: AppointmentStatus;
   notes: string;
   room?: string;
+  onlineSessionLink?: string;
 }
 
 export interface MedicationItem {
@@ -104,16 +243,47 @@ export interface MentalStatusExam {
   insightAndJudgment: string;
 }
 
+export interface DetailedMSE {
+  appearance: string;
+  behaviour: string;
+  speech: string;
+  mood: string;
+  affect: string;
+  thoughtProcess: string;
+  thoughtContent: string;
+  perception: string;
+  cognition: string;
+  insight: string;
+  judgment: string;
+}
+
+export interface RiskAssessmentDetails {
+  suicidalRisk: 'None' | 'Low' | 'Moderate' | 'High';
+  selfHarmRisk: 'None' | 'Low' | 'Moderate' | 'High';
+  violenceRisk: 'None' | 'Low' | 'Moderate' | 'High';
+  otherRisk: string;
+  riskNotes: string;
+}
+
 export interface Consultation {
   id: string;
   patientId: string;
   patientName: string;
+  doctorId?: string;
   doctorName: string;
   date: string;
+  consultationDate?: string;
   time: string;
+  visitType?: string;
   presentingComplaint: string;
   clinicalObservations: string;
   mentalStatusExam?: Partial<MentalStatusExam>;
+  detailedMSE?: DetailedMSE;
+  riskAssessment?: RiskAssessmentDetails;
+  psychometrics?: string;
+  psychiatricHistory?: string;
+  medicalHistory?: string;
+  personalFamilySocialHistory?: string;
   assessment: string;
   diagnosis: {
     primaryICD: string; // e.g., F31.3
@@ -159,6 +329,70 @@ export interface FollowUp {
   notes?: string;
 }
 
+export interface TherapySession {
+  id: string; // e.g. TS-701
+  patientId: string;
+  patientName: string;
+  therapistId: string;
+  therapistName: string;
+  sessionDate: string;
+  durationMinutes: number;
+  sessionType: 'CBT' | 'Psychodynamic' | 'Supportive Psychotherapy' | 'Family Therapy' | 'Interpersonal (IPT)' | 'Mindfulness-Based (MBCT)' | 'Exposure & Response Prevention (ERP)';
+  assessment: string;
+  counselling: string;
+  intervention: string;
+  progressNotes: string;
+  psychometrics: string;
+  lifestyleInterventions: string;
+  followUpPlan: string;
+  responsibleClinician: string;
+  status: 'Completed' | 'Scheduled' | 'Draft';
+}
+
+export interface PaymentRecord {
+  id: string; // e.g. PY-401
+  receiptNumber: string;
+  patientId: string;
+  patientName: string;
+  service: string;
+  feeCategory: 'Consultation' | 'Follow-up' | 'Therapy Session' | 'Other';
+  amount: number;
+  paymentMethod: 'Cash' | 'Bank' | 'Other';
+  paymentStatus: 'Paid' | 'Pending' | 'Partial';
+  date: string;
+  notes?: string;
+}
+
+export interface FeeCategory {
+  id: string;
+  name: string;
+  defaultFee: number;
+  description: string;
+  isActive: boolean;
+}
+
+export interface AuditLogEntry {
+  id: string; // e.g. LOG-8910
+  timestamp: string;
+  userId: string;
+  userName: string;
+  userRole: UserRole;
+  action: string;
+  module: string;
+  patientRef?: string;
+  description: string;
+}
+
+export interface BackupLogEntry {
+  id: string;
+  timestamp: string;
+  fileName: string;
+  fileSize: string;
+  type: 'Full System' | 'Patient Records' | 'Financial & Billing' | 'Audit Logs';
+  status: 'Completed' | 'In Progress' | 'Failed';
+  createdByName: string;
+}
+
 export interface ClinicSettings {
   clinicName: string;
   department: string;
@@ -183,7 +417,9 @@ export interface ClinicSettings {
 }
 
 export type ScreenId = 
+  | 'landing'
   | 'login'
+  | 'forgot-password'
   | 'dashboard'
   | 'patients'
   | 'add-patient'
@@ -193,11 +429,16 @@ export type ScreenId =
   | 'appointments'
   | 'book-appointment'
   | 'appointment-calendar'
+  | 'online-consultation'
   | 'prescriptions'
   | 'follow-ups'
+  | 'therapy'
+  | 'billing'
   | 'reports'
-  | 'settings'
-  | 'user-management';
+  | 'backup'
+  | 'user-management'
+  | 'audit-log'
+  | 'settings';
 
 export interface ToastMessage {
   id: string;
@@ -205,3 +446,4 @@ export interface ToastMessage {
   title: string;
   message: string;
 }
+

@@ -36,22 +36,36 @@ export const BookAppointmentScreen: React.FC = () => {
 
   const targetPatient = patients.find(p => p.id === patientId) || patients[0];
 
-  // Daily available time slots grid (Clinic Timings: Mon, Wed, Fri • 6:00 PM - 8:00 PM)
-  const timeSlots = [
-    { time: '06:00 PM', duration: 30, isOccupied: false },
-    { time: '06:30 PM', duration: 30, isOccupied: false },
-    { time: '07:00 PM', duration: 30, isOccupied: true, bookedBy: 'Clara Oswald-Chen' },
-    { time: '07:30 PM', duration: 30, isOccupied: false },
-  ];
+  // Dynamic time slots with occupied status derived from real appointments
+  const doctorName = clinicSettings.doctorName || 'DR SHAHAB MUHAMMAD';
+  const baseSlots = ['06:00 PM', '06:30 PM', '07:00 PM', '07:30 PM'];
+
+  const timeSlots = baseSlots.map(time => {
+    const existing = appointments.find(a => 
+      a.date === date && 
+      a.time === time && 
+      a.status !== 'Cancelled'
+    );
+    return {
+      time,
+      duration: 30,
+      isOccupied: Boolean(existing),
+      bookedBy: existing?.patientName,
+    };
+  });
 
   // Check if selected time slot conflicts with an existing appointment
-  const isConflict = appointments.some(a => a.date === date && a.time === selectedSlot && a.status !== 'Cancelled');
+  const isConflict = appointments.some(a => 
+    a.date === date && 
+    a.time === selectedSlot && 
+    a.status !== 'Cancelled'
+  );
 
   const handleBooking = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isConflict) {
-      alert('Selected time slot is already booked. Please choose an open slot.');
+      alert(`Selected time slot (${selectedSlot} on ${date}) is already booked for ${doctorName}. Please choose an open slot.`);
       return;
     }
 

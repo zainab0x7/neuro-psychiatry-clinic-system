@@ -35,8 +35,11 @@ export interface IConsultation extends Document {
   patientName: string;
   doctorId: string;
   doctorName: string;
+  clinicianId?: string;
+  clinicianName?: string;
   consultationDate: string; // YYYY-MM-DD
   time: string;
+  visitType?: string;
   presentingComplaint: string;
   clinicalObservations: string;
   mentalStatusExam?: IMentalStatusExam;
@@ -68,8 +71,11 @@ const ConsultationSchema: Schema = new Schema<IConsultation>(
     patientName: { type: String, required: true },
     doctorId: { type: String, required: true, index: true },
     doctorName: { type: String, required: true },
+    clinicianId: { type: String },
+    clinicianName: { type: String },
     consultationDate: { type: String, required: true, index: true },
     time: { type: String, default: '10:00 AM' },
+    visitType: { type: String, default: 'Follow-up Consultation' },
     presentingComplaint: { type: String, required: true },
     clinicalObservations: { type: String, required: true },
     mentalStatusExam: {
@@ -98,6 +104,24 @@ const ConsultationSchema: Schema = new Schema<IConsultation>(
   },
   { timestamps: true }
 );
+
+// Pre-save hook to ensure clinicianId and clinicianName sync with doctorId and doctorName
+ConsultationSchema.pre('save', function () {
+  if (!this.clinicianId && this.doctorId) {
+    this.clinicianId = this.doctorId;
+  } else if (!this.doctorId && this.clinicianId) {
+    this.doctorId = this.clinicianId;
+  }
+  if (!this.clinicianName && this.doctorName) {
+    this.clinicianName = this.doctorName;
+  } else if (!this.doctorName && this.clinicianName) {
+    this.doctorName = this.clinicianName;
+  }
+});
+
+// Compound indexes for patient timeline & clinician roster queries
+ConsultationSchema.index({ patientId: 1, consultationDate: -1 });
+ConsultationSchema.index({ doctorId: 1, consultationDate: -1 });
 
 const Consultation: Model<IConsultation> = mongoose.models.Consultation || mongoose.model<IConsultation>('Consultation', ConsultationSchema);
 
